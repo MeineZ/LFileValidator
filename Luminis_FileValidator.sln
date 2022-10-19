@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Luminis_FileValidator", "Luminis_FileValidator\Luminis_FileValidator.csproj", "{5BD297A6-D009-4116-8D56-AD9586CE0CFF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5BD297A6-D009-4116-8D56-AD9586CE0CFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BD297A6-D009-4116-8D56-AD9586CE0CFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BD297A6-D009-4116-8D56-AD9586CE0CFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BD297A6-D009-4116-8D56-AD9586CE0CFF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BAECE42B-75D2-4BA7-BFBF-49B3D60C4745}
+	EndGlobalSection
+EndGlobal
