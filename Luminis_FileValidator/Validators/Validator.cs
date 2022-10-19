@@ -1,4 +1,8 @@
-﻿using LFV.Records;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using LFV.Records;
 
 namespace LFV.Validators
 {
@@ -9,7 +13,7 @@ namespace LFV.Validators
     /// </summary>
     internal class Validator
     {
-        // TODO: Allow for easy multi-type validation (a list may consist of multiple types, question is.. Is the collection still valid in that case?).
+        // TODO: Allow for easy multi-type validation (a list may consist of multiple types, question is.. Is the collection still valid in that case? Should all data be in the same format?).
 
 
         /// <summary>
@@ -20,13 +24,13 @@ namespace LFV.Validators
         /// </summary>
         /// <param name="records">The collection of <see cref="IRecord"/>s to validate.</param>
         /// <returns><c>true</c> if collection is completely valid.</returns>
-        public bool Validate(IEnumerable<IRecord> records)
+        public bool Validate(List<IRecord>? records)
         {
             bool valid = true;
             if (!(records?.Any() ?? false)) return valid;
 
             // Keep track of references in this collection to easily check for duplicates.
-            int[] occuredReferences = new int[records.Count()];
+            int[] occuredReferences = new int[records.Count];
             int referenceIndex = 0;
             // Validate records
             foreach(IRecord record in records)
