@@ -13,12 +13,11 @@ namespace LFV.Records
     /// </summary>
     internal struct DefaultRecord : IRecord
     {
-        public int Reference;
+        public int Reference { get; set; }
         public string AccountNumber;
         public string Description;
         public decimal StartBalance;
         public decimal Mutation;
         public decimal EndBalance;
-
     }
 }

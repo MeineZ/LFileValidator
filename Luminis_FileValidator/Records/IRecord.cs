@@ -5,5 +5,7 @@ namespace LFV.Records
     /// Interface to identify a record of any type.
     /// </summary>
     interface IRecord
-    { }
+    {
+        int Reference { get; set; }
+    }
 }
