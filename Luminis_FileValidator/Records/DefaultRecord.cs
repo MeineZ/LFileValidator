@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LFV.Attributes;
 
 namespace LFV.Records
 {
@@ -13,11 +9,22 @@ namespace LFV.Records
     /// </summary>
     internal struct DefaultRecord : IRecord
     {
+        [ParsableField(xmlName: "Reference", csvName: "reference")]
         public int Reference;
+
+        [ParsableField(xmlName: "Account Number", csvName: "accountNumber" )]
         public string AccountNumber;
+
+        [ParsableField(xmlName: "Description", csvName: "description")]
         public string Description;
+
+        [ParsableField(xmlName: "Start Balance", csvName: "startBalance")]
         public decimal StartBalance;
+
+        [ParsableField(xmlName: "Mutation", csvName: "mutation")]
         public decimal Mutation;
+
+        [ParsableField(xmlName: "End Balance", csvName: "endBalance")]
         public decimal EndBalance;
 
     }

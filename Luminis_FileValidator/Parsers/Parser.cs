@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Reflection;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
+using LFV.Attributes;
 using LFV.Records;
 
 namespace LFV.Parsers
@@ -23,13 +27,14 @@ namespace LFV.Parsers
         /// A <see cref="List{T}"/> of parsed <see cref="IRecord"/>s. 
         /// It's empty when no data was found or a parsing error occured.
         /// </returns>
-        public List<IRecord> Parse(string path)
+        public List<IRecord> Parse<T>(string path)
+            where T : struct, IRecord
         {
             // Make sure we have a path 
             if (!ValidatePath(path)) return new List<IRecord>();
 
             // Process document
-            return ParseDocument(path);
+            return ParseDocument<T>(path);
         }
 
         /// <summary>
@@ -55,7 +60,22 @@ namespace LFV.Parsers
         /// A <see cref="List{T}"/> of parsed <see cref="IRecord"/>s. 
         /// It's empty when no data was found or a parsing error occured.
         /// </returns>
-        protected abstract List<IRecord> ParseDocument(string path);
+        protected abstract List<IRecord> ParseDocument<T>(string path)
+            where T : struct, IRecord;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected KeyValuePair<FieldInfo, ParsableField>[] GetParsableFields<T>()
+            where T : struct, IRecord
+        {
+            Type type = typeof(T);
+            return type.GetFields()
+                .Where(field => field.IsDefined(typeof(ParsableField), false))
+                .Select(field => new KeyValuePair<FieldInfo, ParsableField>(
+                    field, (ParsableField)field.GetCustomAttribute(typeof(ParsableField), false)!))
+                .ToArray();
+        }
     }
 }

@@ -7,35 +7,37 @@ using LFV.Records;
 
 namespace LFV.Parsers
 {
+    /// <summary>
+    /// Allows for an XML data file to be parsed into a collection of <see cref="IRecord"/>s.
+    /// </summary>
     internal class CSVParser : Parser
     {
-        char[] newline = Environment.NewLine.ToCharArray();
-        char comma = ',';
+        // Define constants
+        static readonly char[] newline = Environment.NewLine.ToCharArray();
+        static readonly char comma = ',';
 
-        public CSVParser()
-            : base()
-        { }
-
+        /// <summary>
+        /// Parses the document into a list of <see cref="IRecord"/>s by loading the CSV document 
+        /// and looping through its records.
+        /// </summary>
+        /// <param name="path">A validated path to the document. Guaranteed to be valid.</param>
+        /// <returns>
+        /// A <see cref="List{T}"/> of parsed <see cref="IRecord"/>s. 
+        /// It's empty when no data was found or a parsing error occured.
+        /// </returns>
         protected override List<IRecord> ParseDocument(string path)
         {
             List<IRecord> records = new List<IRecord>();
 
-            string data = string.Empty;
-            try
-            {
-                data = File.ReadAllText(path);
-            }
-            // All expection type handling is the same in this case.
-            catch(Exception ex)
-            {
-                // TODO: Handle
-                Console.WriteLine(ex);
-                return records;
-            }
+            // Load csv file as text
+            string data = LoadDocumentContent(path);
 
+            // Split file into lines
             // Assumes lines are divided by THIS environment newline character code(s)
             string[] lines = data.Split(newline);
 
+
+            // Parse header
             bool succesfulHeaderParse = ParseDocumentHeader(lines, out string[] headerCells, out Dictionary<string, List<string>> rawRecordData);
             if (!succesfulHeaderParse)
             {
@@ -44,6 +46,8 @@ namespace LFV.Parsers
                 return records;
             }
 
+
+            // Parse data
             bool gatherRawDataSuccess = GatherRawRecordData(lines, headerCells, rawRecordData);
             if (!gatherRawDataSuccess)
             {
@@ -52,6 +56,9 @@ namespace LFV.Parsers
                 return records;
             }
 
+
+            // Can probably be moved into the method above
+            // Parse gathered data into actual record instances
             bool parseRawDataSuccess = ParseRawData(rawRecordData, headerCells, records);
             if (!parseRawDataSuccess)
             {
@@ -61,6 +68,22 @@ namespace LFV.Parsers
             }
 
             return records;
+        }
+
+        private string LoadDocumentContent(string path)
+        {
+            try
+            {
+                return File.ReadAllText(path);
+            }
+            // All expection type handling is the same in this case.
+            catch (Exception ex)
+            {
+                // TODO: Handle
+                Console.WriteLine(ex);
+            }
+
+            return string.Empty;
         }
 
         private bool ParseDocumentHeader(string[] lines, out string[] headerCells, out Dictionary<string, List<string>> rawRecordData)

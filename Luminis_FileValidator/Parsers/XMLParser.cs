@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
+using LFV.Attributes;
 using LFV.Records;
 
 namespace LFV.Parsers
 {
     /// <summary>
     /// Allows for an XML data file to be parsed into a collection of <see cref="IRecord"/>s.
-    /// 
     /// </summary>
     internal class XMLParser : Parser
     {
@@ -22,7 +23,7 @@ namespace LFV.Parsers
         /// A <see cref="List{T}"/> of parsed <see cref="IRecord"/>s. 
         /// It's empty when no data was found or a parsing error occured.
         /// </returns>
-        protected override List<IRecord> ParseDocument(string path)
+        protected override List<IRecord> ParseDocument<T>(string path)
         {
             List<IRecord> records = new List<IRecord>();
 
@@ -35,7 +36,7 @@ namespace LFV.Parsers
             if(recordsCollectionNode == null) return records;
 
             // Parse record collection
-            ParseXmlRecords(recordsCollectionNode, records);
+            ParseXmlRecords<T>(recordsCollectionNode, records);
 
             return records;
         }
@@ -77,24 +78,38 @@ namespace LFV.Parsers
         /// </summary>
         /// <param name="recordsCollection">The node which is supposedly the collection of record nodes.</param>
         /// <param name="records">The list of <see cref="IRecord"/>s to add parsed records to.</param>
-        private void ParseXmlRecords(XmlNode recordsCollection, List<IRecord> records)
+        private void ParseXmlRecords<T>(XmlNode recordsCollection, List<IRecord> records)
+            where T : struct, IRecord
         {
             if(recordsCollection == null) return;
             if (records == null) return;
+
+            KeyValuePair<FieldInfo, ParsableField>[] parsableFields = GetParsableFields<T>();
 
             foreach (XmlNode recordNode in recordsCollection.ChildNodes)
             {
                 try
                 {
-                    DefaultRecord newRecord = new DefaultRecord()
+                    DefaultRecord newRecord = new DefaultRecord();
+                    foreach(KeyValuePair<FieldInfo, ParsableField> parsableField in parsableFields)
                     {
-                        Reference = Int32.Parse(recordNode.Attributes?["reference"]?.InnerText ?? "-1"),
-                        AccountNumber = recordNode.SelectSingleNode("accountNumber")?.InnerText ?? "-",
-                        Description = recordNode.SelectSingleNode("description")?.InnerText ?? "-",
-                        StartBalance = Decimal.Parse(recordNode.SelectSingleNode("startBalance")?.InnerText ?? "0.0"),
-                        Mutation = Decimal.Parse(recordNode.SelectSingleNode("mutation")?.InnerText ?? "0.0"),
-                        EndBalance = Decimal.Parse(recordNode.SelectSingleNode("endBalance")?.InnerText ?? "0.0")
-                    };
+                        parsableField.Value.SetValueFromString(
+                            parsableField.Key,
+                            newRecord!,
+                            recordNode.Attributes?.GetNamedItem(parsableField.Value.XmlName)?.InnerText
+                        );
+                        
+                        
+                    }
+
+                    //{
+                    //    Reference = Int32.Parse( ?? "-1"),
+                    //    AccountNumber = recordNode.SelectSingleNode("accountNumber")?.InnerText ?? "-",
+                    //    Description = recordNode.SelectSingleNode("description")?.InnerText ?? "-",
+                    //    StartBalance = Decimal.Parse(recordNode.SelectSingleNode("startBalance")?.InnerText ?? "0.0"),
+                    //    Mutation = Decimal.Parse(recordNode.SelectSingleNode("mutation")?.InnerText ?? "0.0"),
+                    //    EndBalance = Decimal.Parse(recordNode.SelectSingleNode("endBalance")?.InnerText ?? "0.0")
+                    //};
 
                     records.Add(newRecord);
                 }
