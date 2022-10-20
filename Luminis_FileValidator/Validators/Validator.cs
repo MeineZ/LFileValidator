@@ -30,31 +30,33 @@ namespace LFV.Validators
             if (!(records?.Any() ?? false)) return valid;
 
             // Keep track of references in this collection to easily check for duplicates.
-            int[] occuredReferences = new int[records.Count];
-            int referenceIndex = 0;
+            List<int> occuredReferences = new List<int>(records.Count);
+
             // Validate records
-            foreach(IRecord record in records)
+            for(int i = 0; i < records.Count; ++i)
             {
                 // TODO: Use attributes in DefaultRecord so type checking is not neccessary
-                if (!(record is DefaultRecord)) continue;
-                DefaultRecord defaultRecord = (DefaultRecord)record;
+                if (!(records[i] is DefaultRecord)) continue;
+                DefaultRecord currentRecord = (DefaultRecord)records[i];
 
                 // Check for duplicate references
-                if(occuredReferences.Contains(defaultRecord.Reference))
+                // TODO: Find all references instead of just one.
+                int foundIndex = occuredReferences.FindIndex(reference => reference == currentRecord.Reference);
+                if (foundIndex >= 0)
                 {
-                    // TODO: Find which index its a duplicate with (multiple if possible!)
                     // TODO: Proper report
-                    Console.WriteLine($"Record#{referenceIndex}:{defaultRecord.Reference} has duplicate reference with Record#NA:NA");
+                    Console.WriteLine($"Record#{i}:{currentRecord.Reference} has duplicate reference with:");
+                    Console.WriteLine($"\t- Record#{foundIndex}:{((DefaultRecord)records[foundIndex]).Reference}");
                     valid = false;
                 }
 
-                occuredReferences[referenceIndex++] = defaultRecord.Reference;
+                occuredReferences.Add(currentRecord.Reference);
 
                 // Check for incorrect end balance
-                if(defaultRecord.StartBalance + defaultRecord.Mutation != defaultRecord.EndBalance)
+                if(currentRecord.StartBalance + currentRecord.Mutation != currentRecord.EndBalance)
                 {
                     // TODO: proper report
-                    Console.WriteLine($"Record#{referenceIndex}:{defaultRecord.Reference} has incorrect end balance '{defaultRecord.EndBalance}'. Expected '{(defaultRecord.StartBalance + defaultRecord.Mutation)}' ({defaultRecord.StartBalance} + {defaultRecord.Mutation}).");
+                    Console.WriteLine($"Record#{i}:{currentRecord.Reference} has incorrect end balance '{currentRecord.EndBalance}'. Expected '{(currentRecord.StartBalance + currentRecord.Mutation)}' ({currentRecord.StartBalance} + {currentRecord.Mutation}).");
                     valid = false;
                 }
             }
