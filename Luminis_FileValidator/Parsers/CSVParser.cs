@@ -31,17 +31,19 @@ namespace LFV.Parsers
 
             // Load csv file as text
             string data = LoadDocumentContent(path);
+            if (string.IsNullOrEmpty(data))
+                return records;
 
             // Split file into lines
             // Assumes lines are divided by THIS environment newline character code(s)
             string[] lines = data.Split(newline);
 
             // Parse header
-            bool succesfulHeaderParse = ParseDocumentHeader(lines, out string[] headerCells, out Dictionary<string, List<string>> rawRecordData);
+            bool succesfulHeaderParse = ParseDocumentHeader(lines[0], out string[] headerCells, out Dictionary<string, List<string>> rawRecordData);
             if (!succesfulHeaderParse)
             {
                 // TODO: Proper report
-                Console.WriteLine($"No header was found in '{path}'.");
+                Console.WriteLine($"Header row is empty in '{path}'.");
                 return records;
             }
 
@@ -55,10 +57,8 @@ namespace LFV.Parsers
                 return records;
             }
 
-
-            // Can probably be moved into the method above
             // Parse gathered data into actual record instances
-            bool parseRawDataSuccess = ParseRawData(rawRecordData, headerCells, records);
+            bool parseRawDataSuccess = ParseRawData(rawRecordData, records);
             if (!parseRawDataSuccess)
             {
                 // TODO: Proper report
@@ -69,6 +69,15 @@ namespace LFV.Parsers
             return records;
         }
 
+        /// <summary>
+        /// Loads the csv content as text.
+        /// Logs exception to console if anything went wrong.
+        /// </summary>
+        /// <param name="path">The path to the csv file.</param>
+        /// <returns>
+        /// String containing the file contents as text.<br/>
+        /// Empty if the document failed to load or if the document is empty.
+        /// </returns>
         private string LoadDocumentContent(string path)
         {
             try
@@ -78,24 +87,36 @@ namespace LFV.Parsers
             // All expection type handling is the same in this case.
             catch (Exception ex)
             {
-                // TODO: Handle
+                // TODO: Proper report
                 Console.WriteLine(ex);
             }
 
             return string.Empty;
         }
 
-
-        private bool ParseDocumentHeader(string[] lines, out string[] headerCells, out Dictionary<string, List<string>> rawRecordData)
+        /// <summary>
+        /// Parses all cells from the given header row.
+        /// Then it constructs a dictionary by using the header cells as keys.
+        /// </summary>
+        /// <param name="headerLine">The text on the first line of the document that is supposedly the header.</param>
+        /// <param name="headerCells">[out] All cells in the header that present the header of each column.</param>
+        /// <param name="rawRecordData">[out] A dictionary constructed from the header cells with empty lists.</param>
+        /// <returns>
+        /// <c>false</c> if the header row is empty.<br/>
+        /// <c>true</c> when parse was succesful.
+        /// </returns>
+        private bool ParseDocumentHeader(string headerLine, out string[] headerCells, out Dictionary<string, List<string>> rawRecordData)
         {
-            headerCells = (lines?.Length ?? 0) > 0 
-                ? lines![0].Split(comma) 
-                : new string[0];
+            // Set up out parameters before the first return
+            headerCells = string.IsNullOrEmpty(headerLine.Trim())
+                ? new string[0]
+                : headerLine!.Split(comma);
             rawRecordData = new Dictionary<string, List<string>>();
 
-            if ((lines?.Length ?? 0) <= 0) return false;
+            // Validate header
             if (headerCells.Length <= 0) return false;
 
+            // Construct dictionary by adding header cells as keys.
             foreach (string headerCell in headerCells)
             {
                 if (!rawRecordData.ContainsKey(headerCell))
@@ -106,12 +127,24 @@ namespace LFV.Parsers
             return true;
         }
 
+        /// <summary>
+        /// Gathers the data of each row and moves it into the corresponding list inside the dictionary.
+        /// </summary>
+        /// <param name="lines">All lines/rows from the loaded file, including the header row.</param>
+        /// <param name="headerCells">The header cells to identify data with the correct column.</param>
+        /// <param name="rawRecordData">The dictionary with header cells as keys, to fill with data.</param>
+        /// <returns>
+        /// <c>false</c> if any of the parameters are null or empty.<br/>
+        /// <c>true</c> after all rows have been processed.
+        /// </returns>
         private bool GatherRawRecordData(string[] lines, string[] headerCells, Dictionary<string, List<string>> rawRecordData)
         {
+            // Validate parameters
             if (!(lines?.Any() ?? false)) return false;
             if (!(headerCells?.Any() ?? false)) return false;
             if (rawRecordData == null) return false;
 
+            // Process through all rows
             foreach (string line in lines.Skip(1))
             {
                 if(string.IsNullOrEmpty(line)) continue;
@@ -119,6 +152,7 @@ namespace LFV.Parsers
                 string[] rawRecordCells = line.Split(comma);
                 for (int i = 0; i < rawRecordCells.Length; ++i)
                 {
+                    // For each cell in the row, check if there is a corresponding header cell (not out of bounds)
                     if (i >= headerCells.Length) break;
                     // TODO: Vulnerable to duplicate header names
                     rawRecordData[headerCells[i]].Add(rawRecordCells[i]);
@@ -128,17 +162,27 @@ namespace LFV.Parsers
             return true;
         }
 
-        private bool ParseRawData(Dictionary<string, List<string>> rawRecordData, string[] headerCells, List<IRecord> records)
+        /// <summary>
+        /// Goes through the given raw record data and converts it all to <see cref="DefaultRecord"/>s.
+        /// </summary>
+        /// <param name="rawRecordData">The raw record data that has been parsed from the CSV file.</param>
+        /// <param name="records">The list to push records to.</param>
+        /// <returns>
+        /// <c>false</c> if any parameter is null or empty (records may be empty).<br/>
+        /// <c>true</c> after all data has been processed.
+        /// </returns>
+        private bool ParseRawData(Dictionary<string, List<string>> rawRecordData, List<IRecord> records)
         {
-            if (!(headerCells?.Any() ?? false)) return false;
+            // Validate parameters
             if (!(rawRecordData?.Any() ?? false)) return false;
             if (records == null) return false;
 
-            // TODO: Find better way for looping through entries
-            for (int i = 0; i < rawRecordData[headerCells[0]].Count; ++i)
+            // TODO: Find better way for looping through entries (while gathering raw data perhaps?)
+            for (int i = 0; i < rawRecordData.First().Value.Count; ++i)
             {
                 try
                 {
+                    // TODO: Generic type should be supported here (perhaps in combination with attributes).
                     DefaultRecord newRecord = new DefaultRecord()
                     {
                         Reference = Int32.Parse(rawRecordData["Reference"][i]),
@@ -153,7 +197,7 @@ namespace LFV.Parsers
                 }
                 catch (FormatException fmtEx)
                 {
-                    // TODO: Handle
+                    // TODO: Proper report
                     Console.WriteLine(fmtEx);
                 }
             }

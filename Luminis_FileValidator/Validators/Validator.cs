@@ -44,9 +44,7 @@ namespace LFV.Validators
                 int foundIndex = occuredReferences.FindIndex(reference => reference == currentRecord.Reference);
                 if (foundIndex >= 0)
                 {
-                    // TODO: Proper report
-                    Console.WriteLine($"Record#{i}:{currentRecord.Reference} has duplicate reference with:");
-                    Console.WriteLine($"\t- Record#{foundIndex}:{((DefaultRecord)records[foundIndex]).Reference}");
+                    ReportInvalidation(currentRecord, i, $"Duplicate reference with {records[foundIndex].ToString(foundIndex)}");
                     valid = false;
                 }
 
@@ -55,8 +53,7 @@ namespace LFV.Validators
                 // Check for incorrect end balance
                 if(currentRecord.StartBalance + currentRecord.Mutation != currentRecord.EndBalance)
                 {
-                    // TODO: proper report
-                    Console.WriteLine($"Record#{i}:{currentRecord.Reference} has incorrect end balance '{currentRecord.EndBalance}'. Expected '{(currentRecord.StartBalance + currentRecord.Mutation)}' ({currentRecord.StartBalance} + {currentRecord.Mutation}).");
+                    ReportInvalidation(currentRecord, i, $"Incorrect end balance '{currentRecord.EndBalance}'. Expected '{(currentRecord.StartBalance + currentRecord.Mutation)}' ({currentRecord.StartBalance} + {currentRecord.Mutation}).");
                     valid = false;
                 }
             }
@@ -64,5 +61,19 @@ namespace LFV.Validators
             return valid;
         }
 
+        /// <summary>
+        /// Allows for consistent invalidation reporting.
+        /// Prefixes the given description with the record info and prints additional info on a new line.
+        /// </summary>
+        /// <param name="record">The record that has been invalidated.</param>
+        /// <param name="index">The index of the record that has been invalidated.</param>
+        /// <param name="desc">Additional information about the invalidation.</param>
+        private void ReportInvalidation(IRecord record, int index, string desc)
+        {
+            // TODO: Needs proper reporting system
+            if (!(record is DefaultRecord)) return;
+
+            Console.WriteLine($"{record.ToString(index)} '{((DefaultRecord)record).Description}' is invalid:\n\t {desc} \n");
+        }
     }
 }

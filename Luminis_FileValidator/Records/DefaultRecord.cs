@@ -19,5 +19,15 @@ namespace LFV.Records
         public decimal StartBalance;
         public decimal Mutation;
         public decimal EndBalance;
+
+        /// <summary>
+        /// Converts record into a string including the given index.
+        /// </summary>
+        /// <param name="index">The index of the row that this record is found in.</param>
+        /// <returns>Stringified record (e.g. "Record#1:23456 'Description'")</returns>
+        public string ToString(int index)
+        {
+            return $"Record#{index}:{Reference}";
+        }
     }
 }

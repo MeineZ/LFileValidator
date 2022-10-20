@@ -57,13 +57,13 @@ namespace LFV.Parsers
             }
             catch (XmlException xmlEx)
             {
-                // TODO: Handle
+                // TODO: Proper report
                 Console.WriteLine(xmlEx);
                 return null;
             }
             catch (FileNotFoundException fnfEx)
             {
-                // TODO: Handle
+                // TODO: Proper report
                 Console.WriteLine(fnfEx);
                 return null;
             }
@@ -100,7 +100,7 @@ namespace LFV.Parsers
                 }
                 catch (FormatException fmtEx)
                 {
-                    // TODO: Proper handle
+                    // TODO: Proper report
                     Console.WriteLine(fmtEx);
                 }
             }
